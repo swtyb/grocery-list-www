@@ -1,92 +1,647 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grocery List</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fancy Grocery List</title>
+
+    <!-- Fancy font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
     <style>
+        :root {
+            --bg1: #f8e9dd;
+            --bg2: #f3d0b0;
+            --accent: #ff7a3c;
+            --accent-dark: #c44a12;
+            --accent-soft: rgba(255, 122, 60, 0.12);
+            --text-main: #4b3312;
+            --text-muted: #8f7150;
+            --card-bg: rgba(255, 255, 255, 0.86);
+            --shadow-soft: 0 18px 35px rgba(117, 75, 39, 0.25);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        /* rainbow blob background */
         body {
-            background-color: rgb(242, 224, 207);
-            font-family: Arial, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Poppins", sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #111;
+            overflow: hidden;
         }
-        h1{
-            color:rgb(91, 64, 14);
+
+        body::before {
+            content: "";
+            position: absolute;
+            inset: -20%;
+            background: conic-gradient(
+                from 0deg,
+                #ff0000, #ffa500, #ffff00,
+                #00ff00, #00ffff, #0000ff,
+                #ff00ff, #ff0000
+            );
+            animation: blobWave 18s linear infinite;
+            filter: blur(120px);
+            opacity: 0.8;
         }
-        ul{
-            list-style-type: none;
-            padding-left: 0%;
+
+        @keyframes blobWave {
+            0%   { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-        p{
-            font-size: 1.5rem
+
+        .card {
+            position: relative;
+            width: 100%;
+            max-width: 460px;
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 26px 24px 22px;
+            box-shadow: var(--shadow-soft);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            overflow: hidden;
         }
-        li{
-            font-size: 1.2rem;
-            padding: 8px 0;
+
+        /* decorative glow */
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: -40%;
+            background: radial-gradient(circle at 0% 0%, rgba(255, 255, 255, 0.55), transparent 60%);
+            opacity: 0.5;
+            pointer-events: none;
         }
-        button {
-            background-color: rgb(215, 61, 5);
-            color:white;
-            padding: auto;
+
+        .card-inner {
+            position: relative;
+            z-index: 1;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px 4px 8px;
+            border-radius: 999px;
+            background: var(--accent-soft);
+            color: var(--accent-dark);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 600;
+        }
+
+        .pill span {
+            font-size: 1rem;
+        }
+
+        h1 {
+            margin: 10px 0 2px;
+            font-size: 1.9rem;
+            letter-spacing: 0.02em;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        h1 .emoji {
+            font-size: 1.6rem;
+        }
+
+        .subtitle {
+            margin: 0;
+            font-size: 0.98rem;
+            color: var(--text-muted);
+        }
+
+        .hint {
+            margin: 18px 0 10px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hint-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 0 5px rgba(255, 122, 60, 0.17);
+        }
+
+        /* search & add/remove controls */
+        .search-row,
+        .add-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .search-row input,
+        .add-row input {
+            flex: 1;
+            border-radius: 999px;
+            border: 1px solid rgba(211, 180, 150, 0.7);
+            padding: 8px 12px;
+            font-size: 0.88rem;
+            outline: none;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--text-main);
+            transition:
+                box-shadow 0.15s ease,
+                border-color 0.15s ease,
+                background 0.15s ease;
+        }
+
+        .search-row input:focus,
+        .add-row input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(255, 122, 60, 0.25);
+            background: #fff;
+        }
+
+        .add-row button {
+            white-space: nowrap;
+            padding-inline: 12px;
+            font-size: 0.78rem;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--accent-dark);
+            box-shadow: none;
+            border: 1px solid rgba(255, 151, 95, 0.7);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 171, 120, 0.12);
+            box-shadow: 0 8px 16px rgba(170, 95, 42, 0.25);
+        }
+
+        .btn-ghost:active {
+            box-shadow: 0 3px 6px rgba(120, 62, 26, 0.35);
+        }
+
+        /* ✨ EMOJI PICKER ROW */
+        .emoji-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        .emoji-label {
+            margin-right: 4px;
+            font-weight: 500;
+        }
+
+        .emoji-option {
             border: none;
+            outline: none;
+            border-radius: 999px;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 8px rgba(150, 110, 80, 0.15);
             cursor: pointer;
-            border-radius: 5px; 
+            font-size: 1rem;
+            text-transform: none;
+            letter-spacing: 0;
+            color: var(--text-main);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition:
+                transform 0.12s ease,
+                box-shadow 0.12s ease,
+                background 0.12s ease;
         }
+
+        .emoji-option:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 7px 13px rgba(150, 110, 80, 0.25);
+        }
+
+        .emoji-option.selected {
+            background: rgba(255, 122, 60, 0.16);
+            box-shadow: 0 7px 15px rgba(180, 110, 70, 0.4);
+        }
+
+        #customEmoji {
+            width: 70px;
+            text-align: center;
+            padding-inline: 6px;
+            font-size: 0.9rem;
+        }
+
+        /* list area */
+        ul#groceryList {
+            list-style: none;
+            margin: 6px 0 10px;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+
+            max-height: 260px;        /* scrollable */
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        /* cute scrollbar */
+        ul#groceryList::-webkit-scrollbar {
+            width: 6px;
+        }
+        ul#groceryList::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ul#groceryList::-webkit-scrollbar-thumb {
+            background: rgba(180, 140, 110, 0.5);
+            border-radius: 999px;
+        }
+
+        .grocery-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: linear-gradient(
+                135deg,
+                rgba(255, 255, 255, 0.96),
+                rgba(255, 248, 240, 0.96)
+            );
+            box-shadow: 0 6px 12px rgba(138, 89, 49, 0.08);
+            transition:
+                transform 0.18s ease,
+                box-shadow 0.18s ease,
+                background 0.18s ease,
+                opacity 0.18s ease;
+        }
+
+        .grocery-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 22px rgba(138, 89, 49, 0.16);
+        }
+
+        .grocery-item.bought {
+            background: linear-gradient(
+                135deg,
+                rgba(222, 246, 218, 0.98),
+                rgba(233, 253, 222, 0.96)
+            );
+            opacity: 0.76;
+            transform: translateY(1px) scale(0.99);
+            box-shadow: 0 4px 8px rgba(83, 122, 74, 0.25);
+        }
+
+        input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            flex-shrink: 0;
+            accent-color: var(--accent);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.12s ease;
+        }
+
+        input[type="checkbox"]:active {
+            transform: scale(0.88);
+        }
+
+        label {
+            cursor: pointer;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            user-select: none;
+            transition:
+                color 0.18s ease,
+                text-decoration-color 0.18s ease,
+                opacity 0.18s ease,
+                transform 0.18s ease;
+        }
+
+        label span.emoji {
+            font-size: 1.3rem;
+        }
+
+        .grocery-item.bought label {
+            text-decoration: line-through;
+            text-decoration-thickness: 2px;
+            text-decoration-color: rgba(64, 116, 63, 0.9);
+            color: #576d4d;
+            transform: translateX(2px);
+        }
+
+        .actions {
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .helper-text {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        button {
+            border: none;
+            outline: none;
+            background: linear-gradient(135deg, var(--accent), #ff975f);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 10px 18px rgba(205, 90, 32, 0.45);
+            transform: translateY(0);
+            transition:
+                background 0.18s ease,
+                transform 0.15s ease,
+                box-shadow 0.15s ease;
+        }
+
         button:hover {
-            background-color: rgb(100, 42, 3);
+            background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+            box-shadow: 0 14px 24px rgba(164, 67, 23, 0.55);
+            transform: translateY(-1px);
         }
-        button:active{
-            background-color: rgb(255, 157, 91);
+
+        button:active {
+            transform: translateY(1px) scale(0.98);
+            box-shadow: 0 5px 10px rgba(118, 54, 19, 0.5);
         }
 
+        button span.icon {
+            font-size: 1rem;
+        }
 
+        @media (max-width: 480px) {
+            .card {
+                padding: 22px 18px 18px;
+                border-radius: 20px;
+            }
 
-
+            h1 {
+                font-size: 1.6rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>Grocery List</h1>
-    <p>Don't forget to buy</p>
-    <ul>
-        <li><input type="checkbox" id="item1"><label for="item1">🍼Milk</label></li>
-        <li><input type="checkbox" id="item2"><label for="item2">🍞Bread</label></li>
-        <li><input type="checkbox" id="item3"><label for="item3">🥚Eggs</label></li>
-        <li><input type="checkbox" id="item4"><label for="item4">🍎Apples</label></li>
-        <li><input type="checkbox" id="item5"><label for="item5">🍌Bananas</label></li>
-    </ul>
-    <p>Click on the checkbox to mark an item as bought</p>
+    <div class="card">
+        <div class="card-inner">
+            <div class="pill">
+                <span>🧺</span> Today’s grocery run
+            </div>
 
+            <h1>
+                Grocery List
+                <span class="emoji">✨</span>
+            </h1>
 
-    <button>Clear All</button>
+            <p class="subtitle">Don’t forget to grab these before you head home.</p>
+
+            <div class="hint">
+                <div class="hint-dot"></div>
+                <span>Tick an item to mark it as bought.</span>
+            </div>
+
+            <!-- 🔍 SEARCH BAR -->
+            <div class="search-row">
+                <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="Search item…"
+                    aria-label="Search items"
+                />
+            </div>
+
+            <!-- ✨ EMOJI PICKER -->
+            <div class="emoji-row">
+                <span class="emoji-label">Emoji:</span>
+                <button class="emoji-option selected">🛒</button>
+                <button class="emoji-option">🍕</button>
+                <button class="emoji-option">🥦</button>
+                <button class="emoji-option">🍬</button>
+                <button class="emoji-option">🧃</button>
+                <input
+                    type="text"
+                    id="customEmoji"
+                    maxlength="4"
+                    placeholder="Custom"
+                    aria-label="Custom emoji"
+                />
+            </div>
+
+            <!-- ➕ ADD / ➖ REMOVE -->
+            <div class="add-row">
+                <input
+                    type="text"
+                    id="itemInput"
+                    placeholder="Add or remove item…"
+                    aria-label="Item name"
+                />
+                <button id="addItemBtn">
+                    <span class="icon">➕</span>Add
+                </button>
+                <button id="removeItemBtn" class="btn-ghost">
+                    <span class="icon">➖</span>Remove
+                </button>
+            </div>
+
+            <!-- 📜 SCROLLABLE LIST -->
+            <ul id="groceryList">
+                <li class="grocery-item">
+                    <input type="checkbox" id="item1" />
+                    <label for="item1">
+                        <span class="emoji">🍼</span> Milk
+                    </label>
+                </li>
+
+                <li class="grocery-item">
+                    <input type="checkbox" id="item2" />
+                    <label for="item2">
+                        <span class="emoji">🍞</span> Bread
+                    </label>
+                </li>
+
+                <li class="grocery-item">
+                    <input type="checkbox" id="item3" />
+                    <label for="item3">
+                        <span class="emoji">🥚</span> Eggs
+                    </label>
+                </li>
+
+                <li class="grocery-item">
+                    <input type="checkbox" id="item4" />
+                    <label for="item4">
+                        <span class="emoji">🍎</span> Apples
+                    </label>
+                </li>
+
+                <li class="grocery-item">
+                    <input type="checkbox" id="item5" />
+                    <label for="item5">
+                        <span class="emoji">🍌</span> Bananas
+                    </label>
+                </li>
+            </ul>
+
+            <div class="actions">
+                <p class="helper-text">Pro tip: Clear all when you start a new trip 🛒</p>
+                <button id="clearButton">
+                    <span class="icon">🧼</span>
+                    Clear all
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-            checkbox.addEventListener('change', function(){
-                const label = document.querySelector(`label[for="${this.id}"]`)
-                if(this.checked){
-                    label.style.textDecoration = 'line-through';
-                    label.style.opacity = '0.6'
-                } else {
-                    label.style.textDecoration = 'none';
-                    label.style.opacity = '1'
+        const list = document.getElementById('groceryList');
+        const searchInput = document.getElementById('searchInput');
+        const itemInput = document.getElementById('itemInput');
+        const addBtn = document.getElementById('addItemBtn');
+        const removeBtn = document.getElementById('removeItemBtn');
+        const clearBtn = document.getElementById('clearButton');
+        const emojiButtons = document.querySelectorAll('.emoji-option');
+        const customEmojiInput = document.getElementById('customEmoji');
 
+        let itemIdCounter = 6; // next ID after item5
+        let currentEmoji = '🛒';
+
+        // attach tick behaviour to a checkbox
+        function attachCheckboxListener(checkbox) {
+            checkbox.addEventListener('change', function () {
+                const item = this.closest('.grocery-item');
+                item.classList.toggle('bought', this.checked);
+            });
+        }
+
+        // initial checkboxes
+        document
+            .querySelectorAll('.grocery-item input[type="checkbox"]')
+            .forEach(attachCheckboxListener);
+
+        // 🔍 live search filter
+        searchInput.addEventListener('input', function () {
+            const query = this.value.toLowerCase().trim();
+
+            document.querySelectorAll('#groceryList .grocery-item').forEach(li => {
+                const labelText = li.querySelector('label').textContent.toLowerCase();
+                li.style.display = labelText.includes(query) ? '' : 'none';
+            });
+        });
+
+        // ✨ emoji picker buttons
+        emojiButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                emojiButtons.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                currentEmoji = btn.textContent.trim();
+                customEmojiInput.value = '';
+            });
+        });
+
+        // ✨ custom emoji input
+        customEmojiInput.addEventListener('input', () => {
+            const value = customEmojiInput.value.trim();
+            if (value) {
+                // use first character/grapheme
+                currentEmoji = [...value][0];
+                emojiButtons.forEach(b => b.classList.remove('selected'));
+            }
+        });
+
+        // ➕ add item
+        addBtn.addEventListener('click', function () {
+            const raw = itemInput.value.trim();
+            if (!raw) return;
+
+            const name = raw.charAt(0).toUpperCase() + raw.slice(1);
+            const id = `item${itemIdCounter++}`;
+            const emoji = currentEmoji || '🛒';
+
+            const li = document.createElement('li');
+            li.className = 'grocery-item';
+            li.innerHTML = `
+                <input type="checkbox" id="${id}">
+                <label for="${id}">
+                    <span class="emoji">${emoji}</span> ${name}
+                </label>
+            `;
+
+            const checkbox = li.querySelector('input[type="checkbox"]');
+            attachCheckboxListener(checkbox);
+
+            list.appendChild(li);
+            itemInput.value = '';
+            itemInput.focus();
+        });
+
+                // ➖ remove item (match name exactly, ignoring emoji)
+        removeBtn.addEventListener('click', function () {
+            const raw = itemInput.value.trim().toLowerCase();
+            if (!raw) return;
+
+            const items = document.querySelectorAll('#groceryList .grocery-item');
+
+            let removed = false;
+
+            items.forEach(li => {
+                if (removed) return;
+
+                // Get full label text (emoji + name)
+                let text = li.querySelector('label').textContent.trim();
+
+                // Remove emojis + trim
+                text = text.replace(/[\p{Emoji}\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim();
+
+                // Case-insensitive exact match
+                if (text.toLowerCase() === raw) {
+                    li.remove();
+                    removed = true;
                 }
-            })
-        
-        })
-        document.querySelector('button').addEventListener('click', function(){
-            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                checkbox.checked = false;
-                const label = document.querySelector(`label[for="${checkbox.id}"]`)
-                label.style.textDecoration = 'none';
-                label.style.opacity = '1'
-            })
-        })
+            });
 
+            itemInput.value = '';
+        });
 
+        // 🧼 clear all checkboxes
+        clearBtn.addEventListener('click', function () {
+            document
+                .querySelectorAll('#groceryList .grocery-item input[type="checkbox"]')
+                .forEach(checkbox => {
+                    checkbox.checked = false;
+                    const item = checkbox.closest('.grocery-item');
+                    item.classList.remove('bought');
+                });
+        });
     </script>
-
-
-
-    
 </body>
 </html>
